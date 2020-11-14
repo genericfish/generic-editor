@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generic Editor</title>
+    <style>
+        body { background: white; }
+        #container {
+            width: 100%;
+            max-width: 996px;
+
+            margin: 0 auto;
+        }
+        #editor {
+            font-family: 'Fantasque Sans Mono', 'Courier New', Courier, monospace;
+            padding: 6px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <p>Status: <span id="status"></span></p>
+        <textarea name="editor" id="editor"></textarea>
+    </div>
+
+    <script src="dist/bundle.js"></script>
+</body>
+</html>

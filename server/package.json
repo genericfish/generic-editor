@@ -1,0 +1,22 @@
+{
+    "name": "generic-editor",
+    "version": "0.0.1",
+    "description": "A generic collaborative editor.",
+    "main": "index.js",
+    "scripts": {
+        "build": "./node_modules/.bin/browserify client.js -o static/dist/bundle.js",
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "@teamwork/websocket-json-stream": "^2.0.0",
+        "express": "^4.17.1",
+        "reconnecting-websocket": "^4.4.0",
+        "sharedb": "^1.5.0",
+        "sharedb-string-binding": "^1.0.0",
+        "ws": "^7.4.0"
+    },
+    "devDependencies": {
+        "browserify": "^17.0.0",
+        "sharedb-mingo-memory": "^1.1.4"
+    }
+}
