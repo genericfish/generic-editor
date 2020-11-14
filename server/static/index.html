@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generic Editor</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/styles/default.min.css">
     <style>
         body { background: white; }
         #container {
@@ -22,7 +23,8 @@
 <body>
     <div id="container">
         <p>Status: <span id="status"></span></p>
-        <textarea name="editor" id="editor"></textarea>
+        <textarea id="editor"></textarea>
+        <div id="render"></div>
     </div>
 
     <form enctype="multipart/form-data" action="/upload" method="post">
@@ -32,6 +34,18 @@
         </div>
     </form>
 
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                tags: 'ams'
+            },
+            svg: {
+                fontCache: 'global',
+            },
+        };
+    </script>
     <script src="dist/bundle.js"></script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </body>
 </html>

@@ -6,7 +6,19 @@ const WebSocket = require("ws")
 const WebSocketJSONStream = require("@teamwork/websocket-json-stream")
 const multer = require('multer')
 
-let share = new ShareDB({db: new ShareDBMongo()})
+const GoogleStorageEngine = require('./storageEngine')
+
+let upload = multer({
+    storage: GoogleStorageEngine(),
+    limits: {
+        fieldSize: 2048,
+        fileSize: 1E7
+    }
+})
+
+let share = new ShareDB({db: new ShareDB.MemoryDB()})
+
+let connection = share.connect()
 
 let app = express();
 app.use(express.static('static'))
@@ -18,29 +30,23 @@ server.listen(8248)
 
 wss.on('connection', (ws) => { share.listen(new WebSocketJSONStream(ws)) })
 
-let con = share.connect();
-con.createFetchQuery("test2", {}, {}, (err, results) => {
-    if (err) throw err;
-
-    if (results.length === 0) {
-        let doc = con.get("test2", "auniqueidhere")
-        doc.create({content: ""})
-    }
-})
-
-let upload = multer({
-    // TODO: Replace with custom engine
-    storage: multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, "uploads/")
-        },
-        filename: (req, file, cb) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-            cb(null, file.fieldname + '-' + uniqueSuffix + '.png')
-        }
-    })
-})
-
 app.post("/upload", upload.single("image", 12), (req, res, next) => {
     res.redirect("/")
+})
+
+app.get("/editor", (req, res) => {
+    // FIXME: Very unsafe to trust user input
+    let documentName = req.query.id
+    if (documentName === undefined || documentName === null)
+        documentName = "" + Date.now() + Math.round(Math.random() * 1E9)
+    let doc = connection.get("editor", documentName)
+
+    doc.fetch(err => {
+        if (err) console.error(err)
+
+        if (doc.type === null)
+            doc.create({content: ""})
+    })
+
+    res.redirect("/?id=" + documentName)
 })
