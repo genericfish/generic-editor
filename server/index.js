@@ -4,6 +4,7 @@ const ShareDB = require("sharedb")
 const ShareDBMongo = require("sharedb-mingo-memory")
 const WebSocket = require("ws")
 const WebSocketJSONStream = require("@teamwork/websocket-json-stream")
+const multer = require('multer')
 
 let share = new ShareDB({db: new ShareDBMongo()})
 
@@ -25,4 +26,21 @@ con.createFetchQuery("test2", {}, {}, (err, results) => {
         let doc = con.get("test2", "auniqueidhere")
         doc.create({content: ""})
     }
+})
+
+let upload = multer({
+    // TODO: Replace with custom engine
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, "uploads/")
+        },
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+            cb(null, file.fieldname + '-' + uniqueSuffix + '.png')
+        }
+    })
+})
+
+app.post("/upload", upload.single("image", 12), (req, res, next) => {
+    res.redirect("/")
 })
