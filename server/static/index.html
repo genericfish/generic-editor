@@ -15,26 +15,82 @@
         }
         #editor {
             font-family: 'Fantasque Sans Mono', 'Courier New', Courier, monospace;
+            margin: 20px;
             padding: 6px;
-            border: 1px solid black;
+            border: 2px solid black;
+            width: 400px;
+            height: 750px;
+            position: relative;
+            overflow: scroll;
+
+
+        }
+        #left {
+          float: left;
+          width: 50%;
+          box-size: border-box;
+          resize: horizontal;
+          overflow: auto;
+          resize: none;
+        }
+        #right {
+          float: left;
+          width: 50%;
+          box-size: border-box;
+
+        }
+        #render {
+          padding: 6px;
+          margin: 20px;
+          border: 1px solid black;
+          overflow: scroll;
+          width: 400px;
+          height: 750px;
+        }
+        h1 {
+          font-family: 'Fantasque Sans Mono', 'Courier New', Courier, monospace;
+          text-align: center;
+          font-size: 48px;
         }
     </style>
+    <h1>generic editor</h1>
+    <div style="text-align: center">
+      <p>Status: <span id="status"></span></p>
+    </div>
 </head>
+
 <body>
     <div id="container">
-        <p>Status: <span id="status"></span></p>
+      <div id="left">
         <textarea id="editor"></textarea>
-        <div id="render"></div>
+      </div>
+
+      <div id="right">
+        <div id="render" onscroll="SyncScroll(this)">
+        </div>
+
+      </div>
+
     </div>
 
-    <form enctype="multipart/form-data" action="/upload" method="post">
+    <!-- <form enctype="multipart/form-data" action="/upload" method="post">
         <div class="group">
             <input type="file" name="image" id="stuff">
             <input type="submit" value="">
         </div>
-    </form>
+    </form> -->
 
     <script>
+
+        let sizing = document.getElementById("editor");
+        let sizing1 = document.getElementById("output");
+
+        function SyncScroll(div) {
+            var div1 = document.getElementById("editor");
+            div1.scrollTop = div.scrollTop;
+        }
+
+
         MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
