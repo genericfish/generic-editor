@@ -30,8 +30,10 @@ server.listen(8248)
 
 wss.on('connection', (ws) => { share.listen(new WebSocketJSONStream(ws)) })
 
-app.post("/upload", upload.single("image", 12), (req, res, next) => {
-    res.redirect("/")
+app.post("/upload", (req, res, next) => {
+    upload.single("image")(req, res, err => {
+        if (err) console.error("Error while uploading file.")
+    })
 })
 
 app.get("/editor", (req, res) => {

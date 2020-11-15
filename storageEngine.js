@@ -10,7 +10,7 @@ function getDestination (_req, _file, cb) {
 function GoogleStorageEngine (opts) { }
 
 GoogleStorageEngine.prototype._handleFile = (req, file, callback) => {
-    const filename = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    const filename = "" +  Date.now() + Math.round(Math.random() * 1E9)
     const bucketFile = bucket.file(filename)
 
     file.stream.pipe(bucketFile.createWriteStream())
@@ -19,9 +19,10 @@ GoogleStorageEngine.prototype._handleFile = (req, file, callback) => {
             callback(null, {
                 // FIXME: Actually add this information
                 path: "",
-                size: 0,
-                gcp_name: filename
+                size: 0
             })
+
+            req.res.send(filename)
         })
 }
 
