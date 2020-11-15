@@ -13,6 +13,7 @@ The generic editor is a way for people to collaborate over a document, exchange 
 - node.js is used as our main way to write the server while HTML is used for the developing the webpage.
 - Google Cloud Compute Engine is one of the main components along with websocket technology and nginx to allow the storage of documents
 and images to the Google Cloud.
+- Google Cloud Storage Buckets were used to store images uploaded by the drag and drop functionality.
 - Allowing users to collaborate on the same document was achieved using an operational transformation algorithm implemented by ShareDB.
 
 ### Demo
