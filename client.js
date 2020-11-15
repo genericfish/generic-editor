@@ -2,7 +2,7 @@ const sharedb = require("sharedb/lib/client")
 const StringBinding = require("sharedb-string-binding")
 
 const ReconnectingWebSocket = require("reconnecting-websocket")
-const socket = new ReconnectingWebSocket("ws://" + window.location.host)
+const socket = new ReconnectingWebSocket("ws://" + window.location.host + "/socket")
 const connection = new sharedb.Connection(socket)
 
 const hljs = require("highlight.js")
