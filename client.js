@@ -1,28 +1,33 @@
 const sharedb = require("sharedb/lib/client")
 const StringBinding = require("sharedb-string-binding")
-
 const ReconnectingWebSocket = require("reconnecting-websocket")
+const hljs = require("highlight.js")
+
 const socket = new ReconnectingWebSocket("ws://" + window.location.host + "/socket")
 const connection = new sharedb.Connection(socket)
 
-const hljs = require("highlight.js")
-
-var md = require('markdown-it')({
+const md = require('markdown-it')({
     highlight: function (str, lang) {
         if (lang && hljs.getLanguage(lang)) {
             try {
-            return '<pre class="hljs"><code>' +
-                    hljs.highlight(lang, str, true).value +
-                    '</code></pre>';
+                return '<pre class="hljs"><code>' +
+                        hljs.highlight(lang, str, true).value +
+                        '</code></pre>';
             } catch (__) {}
         }
     
         return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
     }})
 
-let editor = document.getElementById("editor")
-let render = document.getElementById("render")
-let status = document.getElementById("status")
+const editor = document.getElementById("editor")
+const render = document.getElementById("render")
+const status = document.getElementById("status")
+
+let string_binding = undefined
+
+// https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
+// Just use the most popular ones
+const allowed_extensions = ["png", "jpg", "jpeg", "apng", "avif", "gif", "jfif", "pjpeg", "pjp", "svg", "webp"]
 
 function md_render() {
     render.innerHTML = md.render(editor.value)
@@ -30,24 +35,62 @@ function md_render() {
     window.MathJax.typesetPromise()
 }
 
-editor.addEventListener("input", md_render)
+function handle_hover(e) {
+    e.preventDefault()
+    e.stopPropagation()
 
-status.innerHTML = "Unconnected"
+    add_overlay()
+}
+
+function add_overlay() { editor.classList.add("file-hover") }
+function remove_overlay() { editor.classList.remove("file-hover") }
+
+function register_editor() {
+    // Register the current ID of the editor if it didn't exist.
+    let url = new URL(window.location.href)
+    let id = url.searchParams.get("id")
+
+    if (id !== undefined && id !== null)
+        return fetch(url.origin + "/editor?id=" + id).catch(_ => { })
+
+    window.location.replace("/editor")
+}
+
+function update_editor() {
+    // Try to fetch contents on reconnect, else refresh
+    if (string_binding !== undefined) {
+        string_binding.destroy()
+        
+        let doc = connection.get("editor", id)
+        
+        string_binding = new StringBinding(editor, doc, ['content'])
+    }
+
+    window.location.reload()
+}
+
+function main() {
+    register_editor()
+
+    let doc = connection.get("editor", id)
+
+    doc.subscribe(err => {
+        if (err) throw err
+
+        string_binding = new StringBinding(editor, doc, ['content'])
+        string_binding.setup()
+    })
+
+    md_render()
+}
+
 let lostConnection = false
+status.innerHTML = "Unconnected"
 
 socket.addEventListener("open", () => {
     if (lostConnection) {
-        let url = new URL(window.location.href)
-        let id = url.searchParams.get("id")
-
-        if (id !== undefined && id !== null) {
-            // Register current ID if not exists
-            fetch(url.origin + "/editor?id=" + id).catch(err => { })
-        } else {
-            window.location.replace("/editor")
-        }
-
-        window.location.reload()
+        register_editor()
+        update_editor()
 
         lostConnection = false
     }
@@ -69,47 +112,10 @@ socket.addEventListener("error", () => {
 
 socket.addEventListener("message", md_render)
 
-function main() {
-    let url = new URL(window.location.href)
-    let id = url.searchParams.get("id")
-
-    if (id !== undefined && id !== null) {
-        // Register current ID if not exists
-        fetch(url.origin + "/editor?id=" + id).catch(err => { })
-    } else {
-        window.location.replace("/editor")
-    }
-
-    let doc = connection.get("editor", id)
-
-    doc.subscribe(err => {
-        if (err) throw err
-
-        let binding = new StringBinding(editor, doc, ['content'])
-        binding.setup()
-    })
-
-    md_render()
-}
-
-editor.addEventListener("dragenter", e => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    editor.classList.add("file-hover")
-})
-editor.addEventListener("dragleave", e => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    editor.classList.remove("file-hover")
-})
-editor.addEventListener("dragover", e => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    editor.classList.add("file-hover")
-})
+editor.addEventListener("input", md_render)
+editor.addEventListener("dragenter", handle_hover)
+editor.addEventListener("dragleave", handle_hover)
+editor.addEventListener("dragover", handle_hover)
 
 // FIXME: Do we care about IE?
 editor.addEventListener("drop", e => {
@@ -118,24 +124,38 @@ editor.addEventListener("drop", e => {
 
     let transfer = e.dataTransfer
     if (transfer !== null && transfer !== undefined) {
-        let files = transfer.files
+        if (transfer.files.length === 0) return remove_overlay()
+
+        let file = transfer.files[0]
+        let file_ext = file.name.split('.').slice(-1)[0]
+
+        if (file_ext === undefined || !allowed_extensions.includes(file_ext))
+            return remove_overlay()
+
         let url = new URL(window.location.href).origin + "/upload"
         let data = new FormData()
-        data.append("image", files[0]) // Only upload 1 file at a time.
+
+        data.append("image", file) // Only upload 1 file at a time.
 
         fetch(url, {
             method: "POST",
             body: data
         }).then(response => {
-            return response.text()
+            if (response.status === 200)
+                return response.text()
+            else return null
         }).then(filename => {
+            if (filename == null ||
+                typeof filename !== "string" ||
+                filename.substr(0, 9) !== "filename:") return remove_overlay()
+
             let begin = editor.selectionStart
             let end = editor.selectionEnd
             let cached = editor.value
 
             editor.value = cached.substring(0, begin)
-            editor.value += "![alt text](https://storage.googleapis.com/geesen/" + filename + ")"
-            editor.value += cached.substring(end)
+            editor.value += "![alt text](https://storage.googleapis.com/geesen/" +
+                filename.substr(9) + ")" + cached.substring(end)
 
             let event = new Event("input", {
                 cancelable: true
@@ -147,7 +167,7 @@ editor.addEventListener("drop", e => {
         }).catch(() => { })
     }
 
-    editor.classList.remove("file-hover")
+    remove_overlay()
 })
 
 main()
