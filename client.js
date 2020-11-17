@@ -55,7 +55,7 @@ function register_editor() {
     let id = url.searchParams.get("id")
 
     if (id !== undefined && id !== null) {
-        fetch(url.origin + "/editor?id=" + id).catch(_ => { })
+        fetch(url.origin + "/editor?id=" + id).catch(__ => { })
 
         let doc = connection.get("editor", id)
 
@@ -105,6 +105,26 @@ editor.addEventListener("input", md_render)
 editor.addEventListener("dragenter", handle_hover)
 editor.addEventListener("dragleave", handle_hover)
 editor.addEventListener("dragover", handle_hover)
+
+let userScroll = true
+
+editor.addEventListener("scroll", () => {
+    if (userScroll) {
+        let percentage = editor.scrollTop / editor.scrollHeight
+        render.scrollTop = render.scrollHeight * percentage
+        
+        userScroll = false
+    } else userScroll = true
+})
+
+render.addEventListener("scroll", () => {
+    if (userScroll) {
+        let percentage = render.scrollTop / render.scrollHeight
+        editor.scrollTop = editor.scrollHeight * percentage
+
+        userScroll = false
+    } else userScroll = true
+})
 
 // FIXME: Do we care about IE?
 editor.addEventListener("drop", e => {
