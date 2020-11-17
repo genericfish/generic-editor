@@ -22,18 +22,22 @@ const md = require('markdown-it')({
 const editor = document.getElementById("editor")
 const render = document.getElementById("render")
 const status = document.getElementById("status")
+const buffer = document.createElement("div")
 
-let string_binding = undefined
+buffer.setAttribute("style", "visibility: hidden;")
+
+document.body.appendChild(buffer)
 
 // https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types
 // Just use the most popular ones
 const allowed_extensions = ["png", "jpg", "jpeg", "apng", "avif", "gif", "jfif", "pjpeg", "pjp", "svg", "webp"]
 
-function md_render() {
-    render.innerHTML = md.render(editor.value)
+let md_render = _.debounce(() => {
+    buffer.innerHTML = md.render(editor.value)
 
     window.MathJax.typesetPromise()
-}
+    setTimeout(() => { render.innerHTML = buffer.innerHTML }, 15)
+}, 50)
 
 function handle_hover(e) {
     e.preventDefault()
@@ -50,36 +54,26 @@ function register_editor() {
     let url = new URL(window.location.href)
     let id = url.searchParams.get("id")
 
-    if (id !== undefined && id !== null)
-        return fetch(url.origin + "/editor?id=" + id).catch(_ => { })
+    if (id !== undefined && id !== null) {
+        fetch(url.origin + "/editor?id=" + id).catch(_ => { })
+
+        let doc = connection.get("editor", id)
+
+        doc.subscribe(err => {
+            if (err) throw err
+
+            let string_binding = new StringBinding(editor, doc, ["content"])
+            string_binding.setup()
+        })
+
+        return
+    }
 
     window.location.replace("/editor")
 }
 
-function update_editor() {
-    // Try to fetch contents on reconnect, else refresh
-    if (string_binding !== undefined) {
-        string_binding.destroy()
-        
-        let doc = connection.get("editor", id)
-        
-        string_binding = new StringBinding(editor, doc, ['content'])
-    }
-
-    window.location.reload()
-}
-
 function main() {
     register_editor()
-
-    let doc = connection.get("editor", id)
-
-    doc.subscribe(err => {
-        if (err) throw err
-
-        string_binding = new StringBinding(editor, doc, ['content'])
-        string_binding.setup()
-    })
 
     md_render()
 }
@@ -88,12 +82,7 @@ let lostConnection = false
 status.innerHTML = "Unconnected"
 
 socket.addEventListener("open", () => {
-    if (lostConnection) {
-        register_editor()
-        update_editor()
-
-        lostConnection = false
-    }
+    if (lostConnection) window.location.reload()
 
     status.innerHTML = "Connected"
 })
