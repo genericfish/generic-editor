@@ -24,8 +24,8 @@
 
         .container {
             display: flex;
-            width: 100%;
-            max-width: 1200px;
+            width: 92.5%;
+            max-width: 1500px;
             height: 100%;
 
             margin: 0 auto;
@@ -33,6 +33,7 @@
 
         #editor {
             font-family: 'Fantasque Sans Mono', 'Courier New', Courier, monospace;
+            font-size: 1.15rem;
 
             flex: 1;
 
@@ -98,7 +99,7 @@
         <textarea id="editor"></textarea>
         <div id="render"></div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
     <script>
         MathJax = {
             tex: {
