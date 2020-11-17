@@ -1,13 +1,13 @@
 const {Storage} = require("@google-cloud/storage")
 const storage = new Storage()
-const bucket = storage.bucket('geesen')
+const bucket = storage.bucket("geesen")
 
 
 function getDestination (_req, _file, cb) {
-    cb(null, '/dev/null')
+    cb(null, "/dev/null")
 }
 
-function GoogleStorageEngine (opts) { }
+function GoogleStorageEngine (_opts) { }
 
 GoogleStorageEngine.prototype._handleFile = (req, file, callback) => {
     const filename = "" +  Date.now() + Math.round(Math.random() * 1E9)
@@ -22,15 +22,14 @@ GoogleStorageEngine.prototype._handleFile = (req, file, callback) => {
                 size: 0
             })
 
-            req.res.send(filename)
+            req.res.send("filename:" + filename)
         })
 }
 
-GoogleStorageEngine.prototype._removeFile = function _removeFile (_req, _file, callback) {
-    // Don't actually delete anything
+GoogleStorageEngine.prototype._removeFile = (_req, _file, callback) => {
     callback()
 }
 
-module.exports = function (opts) {
+module.exports = (opts) => {
   return new GoogleStorageEngine(opts)
 }
