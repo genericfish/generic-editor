@@ -60,15 +60,15 @@ app.get("/:editorID", (req, res, next) => {
             res.redirect(301, "/")
 
             return next()
+        } else {
+            let options = {
+                root: path.join(process.cwd(), "static")
+            }
+        
+            res.sendFile("/client.html", options, err => {
+                if (err) return next(err)
+            })
         }
-    })
-
-    let options = {
-        root: path.join(process.cwd(), "static")
-    }
-
-    res.sendFile("/client.html", options, err => {
-        if (err) return next(err)
     })
 })
 
@@ -76,7 +76,8 @@ app.get("/", (req, res, next) => {
     // For legacy support, originally editor IDs were URL params not express
     if (req.query.id !== undefined) {
         res.redirect(301, "/" + req.query.id)
-        return next()
+    } else {
+        updateDocument()
     }
 
     function updateDocument() {
@@ -100,10 +101,8 @@ app.get("/", (req, res, next) => {
 
                 console.log(`[SERVER] Created new document: "${documentName}"`)
             } else {
-                return updateDocument()
+                updateDocument()
             }
         })
     }
-
-    updateDocument()
 })
