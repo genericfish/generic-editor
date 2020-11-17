@@ -52,11 +52,9 @@ function remove_overlay() { editor.classList.remove("file-hover") }
 function register_editor() {
     // Register the current ID of the editor if it didn't exist.
     let url = new URL(window.location.href)
-    let id = url.searchParams.get("id")
+    let id = url.pathname.substr(1)
 
-    if (id !== undefined && id !== null) {
-        fetch(url.origin + "/editor?id=" + id).catch(__ => { })
-
+    if (id !== undefined && id !== null && id.trim().length !== 0) {
         let doc = connection.get("editor", id)
 
         doc.subscribe(err => {
@@ -69,7 +67,7 @@ function register_editor() {
         return
     }
 
-    window.location.replace("/editor")
+    window.location.replace("/")
 }
 
 function main() {
