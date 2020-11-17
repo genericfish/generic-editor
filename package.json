@@ -18,12 +18,12 @@
         "random-words": "^1.1.1",
         "reconnecting-websocket": "^4.4.0",
         "sharedb": "^1.5.0",
+        "sharedb-mongo": "^1.0.0-beta.14",
         "sharedb-string-binding": "^1.0.0",
         "ws": "^7.4.0"
     },
     "devDependencies": {
         "browserify": "^17.0.0",
-        "sharedb-mingo-memory": "^1.1.4",
         "terser": "^5.3.8"
     }
 }
