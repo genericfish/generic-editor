@@ -1,7 +1,7 @@
 const http = require("http")
 const express = require("express")
 const ShareDB = require("sharedb")
-const ShareDBMongo = require("sharedb-mingo-memory")
+const ShareDBMongo = require("sharedb-mongo")
 const WebSocket = require("ws")
 const WebSocketJSONStream = require("@teamwork/websocket-json-stream")
 const multer = require("multer")
@@ -17,7 +17,14 @@ let upload = multer({
     }
 })
 
-let share = new ShareDB({db: new ShareDB.MemoryDB()})
+let share
+
+if (process.env.NODE_ENV == "dev") {
+    share = new ShareDB({db: new ShareDB.MemoryDB()})
+} else {
+    const db = new ShareDBMongo("mongodb://127.0.0.1:27015/document")
+    share = new ShareDB({db})
+}
 
 let connection = share.connect()
 
