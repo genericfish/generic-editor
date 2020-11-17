@@ -69,6 +69,9 @@ app.get("/:editorID", (req, res, next) => {
 })
 
 app.get("/", (req, res, next) => {
+    // For legacy support, originally editor IDs were URL params not express
+    if (req.params.id !== undefined) return res.redirect(301, "/" + req.params.id)
+
     function updateDocument() {
         let documentName = randomwords({
             exactly: 3,
@@ -85,12 +88,13 @@ app.get("/", (req, res, next) => {
 
             if (doc.type === null) {
                 doc.create({content: ""})
+
+                res.redirect("/" + documentName)
+
                 console.log(`[SERVER] Created new document: "${documentName}"`)
             } else {
                 return updateDocument()
             }
-
-            res.redirect("/" + documentName)
         })
     }
 
