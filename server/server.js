@@ -56,7 +56,11 @@ app.get("/:editorID", (req, res, next) => {
 
         // REVIEW: Should we allow the user to specify their own document name?
         // Currently if a user specified name does not exist then we make one dynamically
-        if (doc.type === null) res.redirect(301, "/")
+        if (doc.type === null) {
+            res.redirect(301, "/")
+
+            return next()
+        }
     })
 
     let options = {
@@ -70,7 +74,10 @@ app.get("/:editorID", (req, res, next) => {
 
 app.get("/", (req, res, next) => {
     // For legacy support, originally editor IDs were URL params not express
-    if (req.params.id !== undefined) return res.redirect(301, "/" + req.params.id)
+    if (req.query.id !== undefined) {
+        res.redirect(301, "/" + req.query.id)
+        return next()
+    }
 
     function updateDocument() {
         let documentName = randomwords({
