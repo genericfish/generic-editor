@@ -22,7 +22,7 @@ let share
 if (process.env.NODE_ENV == "dev") {
     share = new ShareDB({db: new ShareDB.MemoryDB()})
 } else {
-    const db = new ShareDBMongo("mongodb://127.0.0.1:27015/document")
+    const db = new ShareDBMongo("mongodb://127.0.0.1:27017/document", { useUnifiedTopology: true })
     share = new ShareDB({db})
 }
 
