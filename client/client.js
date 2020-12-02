@@ -52,7 +52,7 @@ function remove_overlay() { editor.classList.remove("file-hover") }
 function register_editor() {
     // Register the current ID of the editor if it didn't exist.
     let url = new URL(window.location.href)
-    let id = url.pathname.substr(1)
+    let id = url.pathname.substr(1).toLowerCase()
 
     if (id !== undefined && id !== null && id.trim().length !== 0) {
         let doc = connection.get("editor", id)
@@ -68,6 +68,13 @@ function register_editor() {
     }
 
     window.location.replace("/")
+}
+
+function insert_at_cursor(text) {
+    let begin = editor.selectionStart
+    let end = editor.selectionEnd
+
+    editor.value = editor.value.substring(0, begin) + text + editor.value.substring(end)
 }
 
 function main() {
@@ -104,25 +111,33 @@ editor.addEventListener("dragenter", handle_hover)
 editor.addEventListener("dragleave", handle_hover)
 editor.addEventListener("dragover", handle_hover)
 
+editor.addEventListener("keydown", e => {
+    if (e.key === "Tab") {
+        e.preventDefault()
+        // let begin = editor.selectionStart
+        // let end = editor.selectionEnd
+
+        // if (begin == end)
+        //     insert_at_cursor(" ".repeat(4 - (begin % 4)))
+        insert_at_cursor("    ")
+    }
+})
+
 let userScroll = true
 
-editor.addEventListener("scroll", () => {
-    if (userScroll) {
-        let percentage = editor.scrollTop / editor.scrollHeight
-        render.scrollTop = render.scrollHeight * percentage
-        
-        userScroll = false
-    } else userScroll = true
-})
+function link_scroll(source, target) {
+    return () => {
+        if (userScroll) {
+            let percentage = source.scrollTop / source.scrollHeight
+            target.scrollTop = Math.round(target.scrollHeight * percentage)
+    
+            userScroll = false
+        } else userScroll = true
+    }
+}
 
-render.addEventListener("scroll", () => {
-    if (userScroll) {
-        let percentage = render.scrollTop / render.scrollHeight
-        editor.scrollTop = editor.scrollHeight * percentage
-
-        userScroll = false
-    } else userScroll = true
-})
+editor.addEventListener("scroll", link_scroll(editor, render))
+render.addEventListener("scroll", link_scroll(render, editor))
 
 // FIXME: Do we care about IE?
 editor.addEventListener("drop", e => {
@@ -156,19 +171,10 @@ editor.addEventListener("drop", e => {
                 typeof filename !== "string" ||
                 filename.substr(0, 9) !== "filename:") return remove_overlay()
 
-            let begin = editor.selectionStart
-            let end = editor.selectionEnd
-            let cached = editor.value
+            insert_at_cursor("![alt text](https://storage.googleapis.com/geesen/" +
+            filename.substr(9) + ")")
 
-            editor.value = cached.substring(0, begin)
-            editor.value += "![alt text](https://storage.googleapis.com/geesen/" +
-                filename.substr(9) + ")" + cached.substring(end)
-
-            let event = new Event("input", {
-                cancelable: true
-            })
-
-            editor.dispatchEvent(event)
+            editor.dispatchEvent(new Event("input"))
 
             md_render()
         }).catch(() => { })

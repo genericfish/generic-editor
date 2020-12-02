@@ -49,7 +49,7 @@ app.post("/upload", (req, res) => {
 app.get("/:editorID", (req, res, next) => {
     let documentName = req.params["editorID"]
 
-    let doc = connection.get("editor", documentName)
+    let doc = connection.get("editor", documentName.toLowerCase())
 
     doc.fetch(err => {
         if (err) return console.error("[EDITOR] Error: " + err)
@@ -89,7 +89,7 @@ app.get("/", (req, res, next) => {
             }
         })
 
-        let doc = connection.get("editor", documentName)
+        let doc = connection.get("editor", documentName.toLowerCase())
 
         doc.fetch(err => {
             if (err) return console.error("[EDITOR] Error: " + err)
