@@ -21,4 +21,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Other
 *.private.json
+static/dist/bundle.js
